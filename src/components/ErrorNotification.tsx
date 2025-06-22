@@ -3,8 +3,8 @@ import { ErrorMessageType } from '../constants/ErrorMessageType';
 import cn from 'classnames';
 
 type Props = {
-  errorMessage: ErrorMessageType | null;
-  onClose: (error: ErrorMessageType | null) => void;
+  errorMessage: ErrorMessageType;
+  onClose: (error: ErrorMessageType) => void;
 };
 
 export const ErrorNotification: React.FC<Props> = ({
@@ -26,7 +26,7 @@ export const ErrorNotification: React.FC<Props> = ({
         data-cy="HideErrorButton"
         type="button"
         className="delete"
-        onClick={() => onClose(null)}
+        onClick={() => onClose(ErrorMessageType.None)}
       />
       {errorMessage}
     </div>

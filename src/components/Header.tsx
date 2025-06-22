@@ -5,7 +5,7 @@ import { Todo } from '../types/Todo';
 
 type Props = {
   onSubmit: (newTodo: Omit<Todo, 'id'>) => Promise<void>;
-  handleError: (error: ErrorMessageType | null) => void;
+  handleError: (error: ErrorMessageType) => void;
   inputRef: RefObject<HTMLInputElement>;
   loading: boolean;
 };
@@ -23,7 +23,7 @@ export const Header: React.FC<Props> = ({
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
 
-    handleError(null);
+    handleError(ErrorMessageType.None);
 
     const prepearedInputValue = todoInput.trim();
 

@@ -16,13 +16,14 @@ const ERROR_DISPLAY_TIMEOUT = 3000;
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
-  const [errorMessage, setErrorMessage] = useState<ErrorMessageType | null>(
-    null,
+  const [errorMessage, setErrorMessage] = useState<ErrorMessageType>(
+    ErrorMessageType.None,
   );
   const [loading, setLoading] = useState(false);
   const [filter, setFilter] = useState<FilterType>(FilterType.All);
   const [tempTodo, setTempTodo] = useState<Todo | null>(null);
   const [activeTodo, setActiveTodo] = useState<number | null>(null);
+  const [errorVersion, setErrorVersion] = useState(0);
 
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -43,12 +44,16 @@ export const App: React.FC = () => {
       return;
     }
 
+    const currentVersion = errorVersion;
+
     const timeoutId = setTimeout(() => {
-      setErrorMessage(null);
+      setErrorMessage(prev =>
+        errorVersion === currentVersion ? ErrorMessageType.None : prev,
+      );
     }, ERROR_DISPLAY_TIMEOUT);
 
     return () => clearTimeout(timeoutId);
-  }, [errorMessage]);
+  }, [errorMessage, errorVersion]);
 
   if (!todoService.USER_ID) {
     return <UserWarning />;
@@ -62,6 +67,11 @@ export const App: React.FC = () => {
     completedTodos,
   } = getTodoStats(todos, filter);
 
+  const showError = (message: ErrorMessageType) => {
+    setErrorMessage(message);
+    setErrorVersion(prev => prev + 1);
+  };
+
   const addTodo = async (newTodo: Omit<Todo, 'id'>) => {
     setLoading(true);
     setActiveTodo(0);
@@ -74,7 +84,7 @@ export const App: React.FC = () => {
         setTempTodo(null);
       })
       .catch(error => {
-        setErrorMessage(ErrorMessageType.Add);
+        showError(ErrorMessageType.Add);
         throw error;
       })
       .finally(() => {
@@ -118,7 +128,7 @@ export const App: React.FC = () => {
     const hasError = results.some(res => res.status === 'rejected');
 
     if (hasError) {
-      setErrorMessage(ErrorMessageType.Delete);
+      showError(ErrorMessageType.Delete);
     }
 
     setTodos(current =>
@@ -137,7 +147,7 @@ export const App: React.FC = () => {
       <div className="todoapp__content">
         <Header
           onSubmit={addTodo}
-          handleError={setErrorMessage}
+          handleError={showError}
           inputRef={inputRef}
           loading={loading}
         />
@@ -160,10 +170,7 @@ export const App: React.FC = () => {
         )}
       </div>
 
-      <ErrorNotification
-        errorMessage={errorMessage}
-        onClose={setErrorMessage}
-      />
+      <ErrorNotification errorMessage={errorMessage} onClose={showError} />
     </div>
   );
 };
